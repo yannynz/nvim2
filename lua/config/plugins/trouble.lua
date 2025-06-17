@@ -10,5 +10,10 @@ return {
             end,
             desc = "Diagnostics (Telescope)"
         },
+        {
+            "<leader>e",
+            "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+            desc = "Buffer Diagnostics (Trouble)",
+        },
     },
 }
