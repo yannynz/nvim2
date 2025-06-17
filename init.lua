@@ -73,7 +73,7 @@ vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><
 --vim.api.nvim_set_keymap('n', '<leader>t', '<cmd>edit term://pwsh<CR>', { noremap = true, silent = true })
 
 -- Exite terminal mode
-vim.api.nvim_set_keymap('t', '<leader>q', '<C-\\><C-n>', {noremap = true})
+vim.api.nvim_set_keymap('t', '<leader>q', '<C-\\><C-n>', { noremap = true })
 
 -- Identing better
 vim.api.nvim_set_keymap('x', '<', '<gv', { noremap = true, silent = true })
@@ -106,3 +106,4 @@ vim.api.nvim_set_keymap('n', '<leader><C-H>', '20zh', { noremap = true, silent =
 -- Git Lens
 --vim.api.nvim_set_keymap('n', '<leader>gl', ':Gitsigns toggle_current_line_blame<CR>', { noremap = true, silent = true })
 --vim.api.nvim_set_keymap('n', '<leader>gld', ':Gitsigns toggle_word_diff<CR> :Gitsigns toggle_deleted<CR>:Gitsigns toggle_linehl<CR>', { noremap = true, silent = true })
+--vim.keymap.set("n", "<leader>a", function() harpoon:list():add() end)
