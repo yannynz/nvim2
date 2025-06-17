@@ -1,13 +1,15 @@
 return {
-    'nvim-flutter/flutter-tools.nvim',
+    'akinsho/flutter-tools.nvim',
     lazy = false,
     dependencies = {
         'nvim-lua/plenary.nvim',
         'stevearc/dressing.nvim',
     },
     config = function()
-        widget_guides = {
-            enabled = false,
+        require("flutter-tools").setup {
+            widget_guides = {
+                enabled = true,
+            },
         }
     end,
 }
