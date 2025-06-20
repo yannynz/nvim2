@@ -1,10 +1,15 @@
 return {
     {
-        "rebelot/kanagawa.nvim",
+        "scottmckendry/cyberdream.nvim",
         lazy = false,
         priority = 1000,
         config = function()
-            vim.cmd([[colorscheme kanagawa]])
+            require("cyberdream").setup({
+                transparent = true, -- Enable transparency
+                italic_comments = true,
+                hide_fillchars = true,
+            })
+            vim.cmd("colorscheme cyberdream")
         end,
     },
     {
@@ -20,4 +25,13 @@ return {
     },
     { "nvim-tree/nvim-web-devicons", lazy = true },
     { "stevearc/dressing.nvim",      event = "VeryLazy" },
+
+    -- {
+    --     "rebelot/kanagawa.nvim",
+    --     lazy = false,
+    --     priority = 1000,
+    --     config = function()
+    --         vim.cmd([[colorscheme kanagawa]])
+    --     end,
+    -- },
 }
