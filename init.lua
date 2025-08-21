@@ -120,3 +120,10 @@ vim.keymap.set('n', '<M-m>', "<cmd>Mason<CR>", { noremap = true, silent = true }
 -- Abre o prompt do : com Alt-t
 vim.keymap.set('n', '<M-t>', ':', { noremap = true, silent = false })
 
+-- aceitar a sugestão inteira
+vim.keymap.set("i", "<C-l>", 'copilot#Accept("<CR>")', {expr = true, replace_keycodes = false})
+
+-- aceitar só uma palavra / uma linha (muito útil p/ “ir escrevendo” aos poucos)
+vim.keymap.set("i", "<C-\\>", "<Plug>(copilot-accept-word)", {silent = true})
+vim.keymap.set("i", "<C-|>", "<Plug>(copilot-accept-line)",  {silent = true})
+

@@ -1,140 +1,108 @@
--- ~/.config/nvim/lua/plugins/lsp.lua  (ou onde você guarda os specs)
 return {
     {
         "neovim/nvim-lspconfig",
         dependencies = {
-            "williamboman/mason.nvim",
-            "williamboman/mason-lspconfig.nvim",
-            -- (opcional mas recomendado p/ DAPs e ferramentas)
+            -- use os pacotes “mason-org/…”, os antigos redirecionam mas é bom atualizar
+            "mason-org/mason.nvim",
+            "mason-org/mason-lspconfig.nvim",
             "jay-babu/mason-nvim-dap.nvim",
             "WhoIsSethDaniel/mason-tool-installer.nvim",
-
             "saghen/blink.cmp",
             {
                 "folke/lazydev.nvim",
-                opts = {
-                    library = {
-                        { path = "${3rd}/luv/library", words = { "vim%.uv" } },
-                    },
-                },
+                opts = { library = { { path = "${3rd}/luv/library", words = { "vim%.uv" } } } },
             },
-            -- Java
             "mfussenegger/nvim-jdtls",
         },
         config = function()
-            -- 0) capabilities via blink.cmp (corrigido)
+            -- 0) capabilities via blink.cmp
             local capabilities = require("blink.cmp").get_lsp_capabilities()
+            local util = require("lspconfig.util")
 
-            -- 1) mason (bins) + mason-lspconfig (LSPs)
+            -- 1) mason + mason-lspconfig (v2)
             require("mason").setup()
-
             require("mason-lspconfig").setup({
                 ensure_installed = {
                     -- C#
-                    "csharp_ls", -- (ou "omnisharp")
+                    "csharp_ls",
                     -- Web / JS / TS / Frameworks
-                    "vtsls", "angularls", "volar", "html", "cssls", "emmet_language_server",
+                    "vtsls", "angularls", "vue_ls", "html", "cssls", "emmet_language_server",
                     "eslint", "jsonls", "tailwindcss",
                     -- Python / Lua / Bash
-                    "basedpyright", -- (ou "pyright")
-                    "lua_ls", "bashls",
+                    "basedpyright", "lua_ls", "bashls",
                     -- Infra
                     "dockerls", "docker_compose_language_service", "yamlls", "helm_ls",
                     "nginx_language_server",
-                    -- Go / C++ / Dart
-                    "gopls", "clangd", "dartls",
-                    -- Java via jdtls é especial (carrega no ftplugin)
-                    -- "jdtls"  -- deixe instalado pelo :Mason, mas não configure aqui
+                    -- Go / C++
+                    "gopls", "clangd",
+                    -- NÃO colocar dartls aqui (ver nota abaixo)
                 },
-                automatic_installation = true,
+                -- v2 liga sozinho os servidores instalados; pode desligar com automatic_enable=false
+                automatic_enable = true,
             })
 
-            -- 2) handlers genéricos (um setup padrão para todos os LSPs acima)
-            local lsp = require("lspconfig")
-            local util = require("lspconfig.util")
-
-            require("mason-lspconfig").setup_handlers({
-                function(server)
-                    lsp[server].setup({
-                        capabilities = capabilities,
-                        on_attach = function(_, bufnr)
-                            local map = function(m, lhs, rhs, d) vim.keymap.set(m, lhs, rhs, { buffer = bufnr, desc = d }) end
-                            map("n", "gd", vim.lsp.buf.definition, "LSP: Go to Definition")
-                            map("n", "gD", vim.lsp.buf.declaration, "LSP: Go to Declaration")
-                            map("n", "gi", vim.lsp.buf.implementation, "LSP: Go to Implementation")
-                            map("n", "gr", vim.lsp.buf.references, "LSP: References")
-                            map("n", "K", vim.lsp.buf.hover, "LSP: Hover")
-                            map("n", "<C-k>", vim.lsp.buf.signature_help, "LSP: Signature")
-                            map("n", "<leader>rn", vim.lsp.buf.rename, "LSP: Rename")
-                            map("n", "<leader>ca", vim.lsp.buf.code_action, "LSP: Code Action")
-                            map("n", "<leader>f", function() vim.lsp.buf.format({ async = true }) end, "LSP: Format")
-                        end,
-                    })
-                end,
-
-                -- Ajustes finos por servidor (opcionais)
-                ["vtsls"] = function()
-                    lsp.vtsls.setup({
-                        capabilities = capabilities,
-                        root_dir = util.root_pattern("tsconfig.json", "package.json", ".git"),
-                        settings = {
-                            typescript = { preferences = { includeInlayParameterNameHints = "all" } },
-                            javascript = { preferences = { includeInlayParameterNameHints = "all" } },
-                        },
-                    })
-                end,
-
-                ["angularls"] = function()
-                    lsp.angularls.setup({
-                        capabilities = capabilities,
-                        root_dir = util.root_pattern("angular.json", "project.json", "nx.json", ".git"),
-                    })
-                end,
-
-                ["volar"] = function()
-                    lsp.volar.setup({
-                        capabilities = capabilities,
-                        filetypes = { "vue" },
-                        root_dir = util.root_pattern("pnpm-workspace.yaml", "yarn.lock", "package-lock.json",
-                            "package.json", ".git"),
-                    })
-                end,
-
-                ["yamlls"] = function()
-                    lsp.yamlls.setup({
-                        capabilities = capabilities,
-                        settings = {
-                            redhat = { telemetry = { enabled = false } },
-                            yaml = {
-                                schemaStore = { enable = true, url = "" },
-                                schemas = { kubernetes = { "*.k8s.yaml", "k8s/*.yaml", "*/kubernetes/*.yaml" } },
-                            },
-                        },
-                    })
-                end,
-
-                ["lua_ls"] = function()
-                    lsp.lua_ls.setup({
-                        capabilities = capabilities,
-                        settings = {
-                            Lua = {
-                                diagnostics = { globals = { "vim" } },
-                                workspace = { checkThirdParty = false },
-                                telemetry = { enable = false },
-                            },
-                        },
-                    })
-                end,
-
-                ["csharp_ls"] = function()
-                    lsp.csharp_ls.setup({
-                        capabilities = capabilities,
-                        root_dir = util.root_pattern("*.sln", "*.csproj", ".git"),
-                    })
+            -- 2) Defaults p/ TODOS os LSPs
+            vim.lsp.config("*", {
+                capabilities = capabilities,
+                on_attach = function(_, bufnr)
+                    local map = function(m, lhs, rhs, d) vim.keymap.set(m, lhs, rhs, { buffer = bufnr, desc = d }) end
+                    map("n", "gd", vim.lsp.buf.definition, "LSP: Go to Definition")
+                    map("n", "gD", vim.lsp.buf.declaration, "LSP: Go to Declaration")
+                    map("n", "gi", vim.lsp.buf.implementation, "LSP: Go to Implementation")
+                    map("n", "gr", vim.lsp.buf.references, "LSP: References")
+                    map("n", "K", vim.lsp.buf.hover, "LSP: Hover")
+                    map("n", "<C-k>", vim.lsp.buf.signature_help, "LSP: Signature")
+                    map("n", "<leader>rn", vim.lsp.buf.rename, "LSP: Rename")
+                    map("n", "<leader>ca", vim.lsp.buf.code_action, "LSP: Code Action")
+                    map("n", "<leader>f", function() vim.lsp.buf.format({ async = true }) end, "LSP: Format")
                 end,
             })
+            -- 3) Ajustes por servidor
+            vim.lsp.config("vtsls", {
+                settings = {
+                    typescript = { preferences = { includeInlayParameterNameHints = "all" } },
+                    javascript = { preferences = { includeInlayParameterNameHints = "all" } },
+                },
+                root_dir = util.root_pattern("tsconfig.json", "package.json", ".git"),
+            })
 
-            -- 3) (opcional) DAPs e ferramentas extras via Mason
+            vim.lsp.config("angularls", {
+                root_dir = util.root_pattern("angular.json", "project.json", "nx.json", ".git"),
+            })
+
+            -- ATENÇÃO: agora é vue_ls (não “volar”)
+            vim.lsp.config("vue_ls", {
+                filetypes = { "vue" },
+                root_dir = util.root_pattern(
+                    "pnpm-workspace.yaml", "yarn.lock", "package-lock.json", "package.json", ".git"
+                ),
+            })
+
+            vim.lsp.config("yamlls", {
+                settings = {
+                    redhat = { telemetry = { enabled = false } },
+                    yaml = {
+                        schemaStore = { enable = true, url = "" },
+                        schemas = { kubernetes = { "*.k8s.yaml", "k8s/*.yaml", "*/kubernetes/*.yaml" } },
+                    },
+                },
+            })
+
+            vim.lsp.config("lua_ls", {
+                settings = {
+                    Lua = {
+                        diagnostics = { globals = { "vim" } },
+                        workspace = { checkThirdParty = false },
+                        telemetry = { enable = false },
+                    },
+                },
+            })
+
+            vim.lsp.config("csharp_ls", {
+                root_dir = util.root_pattern("*.sln", "*.csproj", ".git"),
+            })
+
+            -- 4) DAPs e ferramentas
             require("mason-nvim-dap").setup({
                 ensure_installed = { "js", "codelldb", "python", "delve", "netcoredbg" },
                 automatic_installation = true,
@@ -142,18 +110,53 @@ return {
 
             require("mason-tool-installer").setup({
                 ensure_installed = {
-                    -- formatters/linters/CLIs (NÃO são LSPs)
                     "prettierd", "eslint_d", "biome",
                     "black", "ruff", "debugpy",
                     "stylua",
                     "hadolint", "nginx-language-server", "nginx-config-formatter",
                     "gofumpt", "goimports", "gci", "golines", "staticcheck",
                     "shellcheck", "shfmt",
-                    -- você pode adicionar mais aqui (p.ex. markdownlint etc.)
                 },
                 auto_update = false,
                 run_on_start = true,
             })
+
+            -- 5) Dart: configure “por fora” do Mason
+            -- Requer Dart/Flutter no PATH; não coloque em ensure_installed
+            vim.lsp.config("dartls", {}) -- use os defaults do lspconfig
+            vim.lsp.enable({ "dartls" }) -- habilite explicitamente (Mason não habilita)
         end,
     },
+    -- DAP base
+    {
+        "mfussenegger/nvim-dap",
+        keys = {
+            { "<F5>",      function() require("dap").continue() end,          desc = "DAP Continue" },
+            { "<F10>",     function() require("dap").step_over() end,         desc = "DAP Step Over" },
+            { "<F11>",     function() require("dap").step_into() end,         desc = "DAP Step Into" },
+            { "<F12>",     function() require("dap").step_out() end,          desc = "DAP Step Out" },
+            { "<leader>b", function() require("dap").toggle_breakpoint() end, desc = "DAP Breakpoint" },
+        },
+    },
+
+    -- Bridge do Mason para DAPs
+    {
+        "jay-babu/mason-nvim-dap.nvim",
+        dependencies = {
+            "mason-org/mason.nvim",
+            "mfussenegger/nvim-dap",
+        },
+        opts = {
+            -- instale os adapters que você usa
+            ensure_installed = { "python", "delve", "codelldb", "netcoredbg", "js" },
+            -- IMPORTANTe: manter handlers={}, isso aplica os defaults de config.
+            handlers = {},
+            automatic_installation = true,
+        },
+        config = function(_, opts)
+            require("mason").setup()      -- mason primeiro
+            require("mason-nvim-dap").setup(opts) -- depois mason-nvim-dap
+        end,
+    }
+
 }
