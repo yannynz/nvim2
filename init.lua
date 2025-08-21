@@ -119,3 +119,4 @@ vim.keymap.set('n', '<M-m>', "<cmd>Mason<CR>", { noremap = true, silent = true }
 
 -- Abre o prompt do : com Alt-t
 vim.keymap.set('n', '<M-t>', ':', { noremap = true, silent = false })
+
