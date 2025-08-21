@@ -107,3 +107,15 @@ vim.api.nvim_set_keymap('n', '<leader><C-H>', '20zh', { noremap = true, silent =
 --vim.api.nvim_set_keymap('n', '<leader>gl', ':Gitsigns toggle_current_line_blame<CR>', { noremap = true, silent = true })
 --vim.api.nvim_set_keymap('n', '<leader>gld', ':Gitsigns toggle_word_diff<CR> :Gitsigns toggle_deleted<CR>:Gitsigns toggle_linehl<CR>', { noremap = true, silent = true })
 --vim.keymap.set("n", "<leader>a", function() harpoon:list():add() end)
+
+-- Save all buffers with alt-S
+vim.keymap.set("n", "<M-s>", "<cmd>wa<CR>", { noremap = true, silent = true })
+
+-- Quit Neovim with Ctrl-Q
+vim.keymap.set("n", "<M-q>", "<cmd>qa<CR>", { noremap = true, silent = true })
+
+-- Open Mason with Alt-m 
+vim.keymap.set('n', '<M-m>', "<cmd>Mason<CR>", { noremap = true, silent = true })
+
+-- Abre o prompt do : com Alt-t
+vim.keymap.set('n', '<M-t>', ':', { noremap = true, silent = false })
