@@ -23,3 +23,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
+vim.keymap.set("n", "gK", function()
+  local cur = vim.diagnostic.config().virtual_lines
+  vim.diagnostic.config({ virtual_lines = not cur })
+end, { desc = "Alternar diagnostics virtual_lines" })
+
