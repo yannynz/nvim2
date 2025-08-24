@@ -75,12 +75,32 @@ return {
             end
 
             special.angularls = function()
-                lsp.angularls.setup({
-                    capabilities = capabilities,
-                    on_attach = on_attach,
-                    root_dir = util.root_pattern("angular.json", "project.json", "nx.json", ".git"),
-                })
-            end
+  local lsp  = require("lspconfig")
+  local util = require("lspconfig.util")
+
+  lsp.angularls.setup({
+    capabilities = capabilities,
+    on_attach = on_attach,
+    -- cobre Angular padrão e Nx
+    root_dir = util.root_pattern("angular.json", "project.json", "workspace.json", "nx.json", ".git"),
+
+    -- aponto as sondas (probe) para o node_modules do *workspace*
+    on_new_config = function(new_config, new_root_dir)
+      -- tenta achar o node_modules ascendente (útil em monorepo com hoist)
+      local nm = util.find_node_modules_ancestor(new_root_dir) or (new_root_dir .. "/node_modules")
+
+      new_config.cmd = {
+        "ngserver",
+        "--stdio",
+        "--tsProbeLocations", nm,
+        "--ngProbeLocations", nm,
+        -- descomente se quiser log detalhado do servidor:
+        -- "--logFile", new_root_dir .. "/.angularls.log",
+        -- "--logVerbosity", "verbose",
+      }
+    end,
+  })
+end
 
             special.volar = function()
                 lsp.volar.setup({
