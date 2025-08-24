@@ -10,7 +10,7 @@ return {
                 preset = 'none',
                 ['<CR>'] = { 'accept', 'fallback' },
                 ['<C-n>'] = { 'select_next' },
-                ['<C-p>'] = { 'select_prev' },
+                ['<C-m>'] = { 'select_prev' },
                 ['<C-j>'] = { 'show' },
             },
 
