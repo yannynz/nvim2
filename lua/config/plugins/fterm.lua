@@ -1,13 +1,27 @@
 return {
     'numToStr/FTerm.nvim',
     config = function()
+        local term_cmd
+
+        if vim.fn.has('win32') == 1 then
+            if vim.fn.executable('pwsh') == 1 then
+                term_cmd = { 'pwsh', '-NoLogo' }
+            elseif vim.fn.executable('powershell.exe') == 1 then
+                term_cmd = { 'powershell.exe', '-NoLogo' }
+            else
+                term_cmd = { 'cmd.exe' }
+            end
+        else
+            term_cmd = { vim.o.shell ~= '' and vim.o.shell or 'sh' }
+        end
+
         require('FTerm').setup({
             border = 'double',
             dimensions = {
                 height = 0.9,
                 width = 0.9,
             },
-            cmd = { 'powershell.exe', '-NoLogo' },
+            cmd = term_cmd,
         })
 
         -- Keymaps
