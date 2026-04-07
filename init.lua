@@ -8,7 +8,7 @@ vim.opt.softtabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 vim.opt.smartindent = true
-vim.opt.wrap = false
+vim.opt.wrap = true 
 vim.opt.swapfile = false
 vim.opt.backup = false
 vim.opt.undofile = true
@@ -19,6 +19,17 @@ vim.opt.scrolloff = 12
 vim.opt.signcolumn = "yes"
 vim.opt.isfname:append("@-@")
 vim.opt.updatetime = 100
+
+vim.diagnostic.config({
+    virtual_text = {
+        severity = { min = vim.diagnostic.severity.WARN },
+    },
+    virtual_lines = false,
+    signs = true,
+    underline = true,
+    update_in_insert = false,
+    severity_sort = true,
+})
 
 --remaps
 ---- Leader
@@ -126,4 +137,3 @@ vim.keymap.set("i", "<C-l>", 'copilot#Accept("<CR>")', {expr = true, replace_key
 -- aceitar só uma palavra / uma linha (muito útil p/ “ir escrevendo” aos poucos)
 vim.keymap.set("i", "<C-\\>", "<Plug>(copilot-accept-word)", {silent = true})
 vim.keymap.set("i", "<C-|>", "<Plug>(copilot-accept-line)",  {silent = true})
-

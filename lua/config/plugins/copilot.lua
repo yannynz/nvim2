@@ -9,15 +9,34 @@ return {
       vim.g.copilot_no_maps = true
     end,
     config = function()
-      -- bloqueia o ghost text/painel padrão (vamos usar só o blink)
-      vim.api.nvim_create_augroup("github_copilot", { clear = true })
-      vim.api.nvim_create_autocmd({ "FileType", "BufUnload" }, {
-        group = "github_copilot",
-        callback = function(args)
-          vim.fn["copilot#On" .. args.event]()
+      -- usa <Tab> para aceitar apenas quando existir sugestão do Copilot
+      vim.keymap.set("i", "<Tab>", function()
+        local ok, cmp = pcall(require, "blink.cmp")
+        if ok and cmp.snippet_active({ direction = 1 }) then
+          cmp.snippet_forward()
+          return ""
+        end
+
+        local has_suggestion = false
+        local ok_suggestion, suggestion = pcall(vim.fn["copilot#GetDisplayedSuggestion"])
+        if ok_suggestion and suggestion and type(suggestion) == "table" then
+          has_suggestion = suggestion.text and suggestion.text ~= ""
+        end
+
+        if has_suggestion then
+          return vim.fn["copilot#Accept"]("")
+        end
+
+        return vim.api.nvim_replace_termcodes("<Tab>", true, false, true)
+      end, { expr = true, silent = true, replace_keycodes = false, desc = "Copilot: aceitar sugestão" })
+
+      -- garante que o Copilot esteja ativo quando entrar em um buffer
+      vim.api.nvim_create_autocmd("BufEnter", {
+        group = vim.api.nvim_create_augroup("github_copilot_activate", { clear = true }),
+        callback = function()
+          vim.cmd("silent! Copilot enable")
         end,
       })
-      vim.fn["copilot#OnFileType"]()
     end,
   },
 
@@ -36,4 +55,3 @@ return {
     end,
   },
 }
-

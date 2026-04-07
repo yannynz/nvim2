@@ -19,6 +19,32 @@ return {
             local capabilities = require("blink.cmp").get_lsp_capabilities()
             local util = require("lspconfig.util")
 
+            local function fallback_root(bufnr)
+                local fname = vim.api.nvim_buf_get_name(bufnr)
+                if fname ~= "" then
+                    local git = vim.fs.root(fname, ".git")
+                    if git then
+                        return git
+                    end
+                    return vim.fs.dirname(fname)
+                end
+                local cwd = (vim.uv or vim.loop).cwd()
+                local git = vim.fs.root(cwd, ".git")
+                return git or cwd
+            end
+
+            local function make_root_dir(...)
+                local resolver = util.root_pattern(...)
+                return function(bufnr, on_dir)
+                    local fname = vim.api.nvim_buf_get_name(bufnr)
+                    local root
+                    if fname ~= "" then
+                        root = resolver(fname)
+                    end
+                    on_dir(root or fallback_root(bufnr))
+                end
+            end
+
             -- 1) mason + mason-lspconfig (v2)
             require("mason").setup()
             local has_go = vim.fn.executable("go") == 1
@@ -37,18 +63,14 @@ return {
                 "nginx_language_server",
                 -- C/C++
                 "clangd",
-                -- NÃO colocar dartls aqui (ver nota abaixo)
+                -- Rust (Adicionado para garantir suporte)
+                "rust_analyzer",
             }
             if has_go then
                 table.insert(mason_lsp_servers, "gopls")
             else
                 vim.notify("Go (binário 'go') não encontrado no PATH; pulando instalação de gopls e ferramentas Go.", vim.log.levels.WARN)
             end
-            require("mason-lspconfig").setup({
-                ensure_installed = mason_lsp_servers,
-                -- v2 liga sozinho os servidores instalados; pode desligar com automatic_enable=false
-                automatic_enable = true,
-            })
 
             local function on_attach(_, bufnr)
                 local map = function(m, lhs, rhs, d) vim.keymap.set(m, lhs, rhs, { buffer = bufnr, desc = d }) end
@@ -63,71 +85,124 @@ return {
                 map("n", "<leader>f", function() vim.lsp.buf.format({ async = true }) end, "LSP: Format")
             end
 
-            -- 2) Defaults p/ TODOS os LSPs
-            vim.lsp.config("*", {
-                capabilities = capabilities,
-                on_attach = on_attach,
-            })
-            -- 3) Ajustes por servidor
-            vim.lsp.config("vtsls", {
-                settings = {
-                    typescript = { preferences = { includeInlayParameterNameHints = "all" } },
-                    javascript = { preferences = { includeInlayParameterNameHints = "all" } },
+            -- Definição dos handlers para o Mason-LSPConfig
+            require("mason-lspconfig").setup({
+                ensure_installed = mason_lsp_servers,
+                handlers = {
+                    -- Handler Padrão (Fallback)
+                    function(server_name)
+                        require("lspconfig")[server_name].setup({
+                            capabilities = capabilities,
+                            on_attach = on_attach,
+                        })
+                    end,
+
+                    -- Ignorar JDTLS aqui (configurado manualmente abaixo com nvim-jdtls)
+                    ["jdtls"] = function() end,
+
+                    -- Configurações Específicas
+                    ["vtsls"] = function()
+                        require("lspconfig").vtsls.setup({
+                            capabilities = capabilities,
+                            on_attach = on_attach,
+                            settings = {
+                                typescript = { preferences = { includeInlayParameterNameHints = "none" } },
+                                javascript = { preferences = { includeInlayParameterNameHints = "none" } },
+                            },
+                            root_dir = make_root_dir("tsconfig.json", "package.json", ".git"),
+                        })
+                    end,
+
+                    ["angularls"] = function()
+                        require("lspconfig").angularls.setup({
+                            capabilities = capabilities,
+                            on_attach = on_attach,
+                            root_dir = make_root_dir("angular.json", "project.json", "nx.json", ".git"),
+                        })
+                    end,
+
+                    ["html"] = function()
+                        local filetypes = { "html", "angular.html", "htmlangular" }
+                        -- Tenta carregar defaults do lspconfig se existirem
+                        local ok, html_defaults = pcall(require, "lspconfig.server_configurations.html")
+                        if ok then
+                            local default_fts = vim.deepcopy(html_defaults.default_config.filetypes or {})
+                            vim.list_extend(filetypes, default_fts)
+                        end
+                        -- Remover duplicatas
+                        local seen = {}
+                        local unique_fts = {}
+                        for _, ft in ipairs(filetypes) do
+                            if not seen[ft] then table.insert(unique_fts, ft); seen[ft] = true end
+                        end
+                        require("lspconfig").html.setup({
+                            capabilities = capabilities,
+                            on_attach = on_attach,
+                            filetypes = unique_fts,
+                        })
+                    end,
+
+                    ["vue_ls"] = function()
+                        require("lspconfig").vue_ls.setup({
+                            capabilities = capabilities,
+                            on_attach = on_attach,
+                            filetypes = { "vue" },
+                            root_dir = make_root_dir(
+                                "pnpm-workspace.yaml", "yarn.lock", "package-lock.json", "package.json", ".git"
+                            ),
+                        })
+                    end,
+
+                    ["yamlls"] = function()
+                        require("lspconfig").yamlls.setup({
+                            capabilities = capabilities,
+                            on_attach = on_attach,
+                            settings = {
+                                redhat = { telemetry = { enabled = false } },
+                                yaml = {
+                                    schemaStore = { enable = true, url = "" },
+                                    schemas = { kubernetes = { "*.k8s.yaml", "k8s/*.yaml", "*/kubernetes/*.yaml" } },
+                                },
+                            },
+                        })
+                    end,
+
+                    ["lua_ls"] = function()
+                        require("lspconfig").lua_ls.setup({
+                            capabilities = capabilities,
+                            on_attach = on_attach,
+                            settings = {
+                                Lua = {
+                                    diagnostics = { globals = { "vim" } },
+                                    workspace = { checkThirdParty = false },
+                                    telemetry = { enable = false },
+                                },
+                            },
+                        })
+                    end,
+
+                    ["csharp_ls"] = function()
+                        require("lspconfig").csharp_ls.setup({
+                            capabilities = capabilities,
+                            on_attach = on_attach,
+                            root_dir = make_root_dir("*.sln", "*.slnx", "*.csproj", ".git"),
+                        })
+                    end,
+
+                    ["rust_analyzer"] = function()
+                        require("lspconfig").rust_analyzer.setup({
+                            capabilities = capabilities,
+                            on_attach = on_attach,
+                            -- root_dir padrão do lspconfig já funciona bem para rust (Cargo.toml)
+                        })
+                    end,
                 },
-                root_dir = util.root_pattern("tsconfig.json", "package.json", ".git"),
             })
 
-            vim.lsp.config("angularls", {
-                root_dir = util.root_pattern("angular.json", "project.json", "nx.json", ".git"),
-            })
-
-            -- ATENÇÃO: agora é vue_ls (não “volar”)
-            vim.lsp.config("vue_ls", {
-                filetypes = { "vue" },
-                root_dir = util.root_pattern(
-                    "pnpm-workspace.yaml", "yarn.lock", "package-lock.json", "package.json", ".git"
-                ),
-            })
-
-            vim.lsp.config("yamlls", {
-                settings = {
-                    redhat = { telemetry = { enabled = false } },
-                    yaml = {
-                        schemaStore = { enable = true, url = "" },
-                        schemas = { kubernetes = { "*.k8s.yaml", "k8s/*.yaml", "*/kubernetes/*.yaml" } },
-                    },
-                },
-            })
-
-            vim.lsp.config("lua_ls", {
-                settings = {
-                    Lua = {
-                        diagnostics = { globals = { "vim" } },
-                        workspace = { checkThirdParty = false },
-                        telemetry = { enable = false },
-                    },
-                },
-            })
-
-            vim.lsp.config("csharp_ls", {
-                root_dir = util.root_pattern("*.sln", "*.csproj", ".git"),
-            })
-
-            -- 4) Java (JDTLS + Lombok)
+            -- 4) Java (JDTLS + Lombok) - Manual Setup
             local function setup_java()
                 local ok, jdtls = pcall(require, "jdtls")
                 if not ok then
-                    return
-                end
-
-                local registry_ok, registry = pcall(require, "mason-registry")
-                if not registry_ok then
-                    vim.notify("mason-registry indisponível para configurar o JDTLS", vim.log.levels.WARN)
-                    return
-                end
-
-                if not registry.is_installed("jdtls") then
-                    vim.notify("Instale o jdtls via Mason para habilitar Java", vim.log.levels.WARN)
                     return
                 end
 
@@ -136,12 +211,16 @@ return {
                     return
                 end
 
-                local jdtls_pkg = registry.get_package("jdtls")
-                local jdtls_path = jdtls_pkg:get_install_path()
+                -- Caminhos Hardcoded do Mason (Mais seguro que usar registry na inicialização)
+                local mason_path = vim.fn.stdpath("data") .. "/mason"
+                local jdtls_path = mason_path .. "/packages/jdtls"
                 local lombok_path = jdtls_path .. "/lombok.jar"
                 local launcher = vim.fn.glob(jdtls_path .. "/plugins/org.eclipse.equinox.launcher_*.jar")
-                if launcher == "" then
-                    vim.notify("Launcher do JDTLS não encontrado", vim.log.levels.ERROR)
+
+                if vim.fn.empty(launcher) == 1 then
+                    -- Tenta fallback se o Mason instalou em outro lugar ou estrutura mudou
+                    -- Mas geralmente packages/jdtls é o padrão
+                    vim.notify("Launcher do JDTLS não encontrado em: " .. jdtls_path, vim.log.levels.WARN)
                     return
                 end
 
@@ -162,21 +241,18 @@ return {
                 vim.fn.mkdir(workspace_dir, "p")
 
                 local bundles = {}
-                if registry.is_installed("java-debug-adapter") then
-                    local java_debug_pkg = registry.get_package("java-debug-adapter")
-                    local java_debug_path = java_debug_pkg:get_install_path()
-                    local debug_bundle = vim.fn.glob(java_debug_path .. "/extension/server/com.microsoft.java.debug.plugin-*.jar")
-                    if debug_bundle ~= "" then
-                        table.insert(bundles, debug_bundle)
-                    end
+                -- Java Debug Adapter
+                local java_debug_path = mason_path .. "/packages/java-debug-adapter"
+                local debug_bundle = vim.fn.glob(java_debug_path .. "/extension/server/com.microsoft.java.debug.plugin-*.jar")
+                if debug_bundle ~= "" then
+                    table.insert(bundles, debug_bundle)
                 end
-                if registry.is_installed("java-test") then
-                    local java_test_pkg = registry.get_package("java-test")
-                    local java_test_path = java_test_pkg:get_install_path()
-                    local test_bundles = vim.fn.glob(java_test_path .. "/extension/server/*.jar", false, true)
-                    if test_bundles then
-                        vim.list_extend(bundles, test_bundles)
-                    end
+                
+                -- Java Test
+                local java_test_path = mason_path .. "/packages/java-test"
+                local test_bundles = vim.fn.glob(java_test_path .. "/extension/server/*.jar", false, true)
+                if not vim.tbl_isempty(test_bundles) then
+                    vim.list_extend(bundles, test_bundles)
                 end
 
                 local jdtls_dap = nil
@@ -247,8 +323,27 @@ return {
 
             -- 6) Dart: configure “por fora” do Mason
             -- Requer Dart/Flutter no PATH; não coloque em ensure_installed
-            vim.lsp.config("dartls", {}) -- use os defaults do lspconfig
-            vim.lsp.enable({ "dartls" }) -- habilite explicitamente (Mason não habilita)
+            -- Uso de vim.lsp.config (Nativo Nvim 0.11) para evitar warnings de deprecation
+            local dart_opts = {
+                capabilities = capabilities,
+                on_attach = on_attach,
+            }
+            
+            -- Tenta carregar defaults do nvim-lspconfig se disponível
+            local ok_configs, configs = pcall(require, "lspconfig.configs")
+            if ok_configs and configs["dartls"] then
+                local defaults = configs["dartls"].default_config or {}
+                dart_opts = vim.tbl_deep_extend("force", defaults, dart_opts)
+            end
+
+            -- Registra e habilita o servidor
+            if vim.lsp.config then
+                vim.lsp.config("dartls", dart_opts)
+                vim.lsp.enable("dartls")
+            else
+                -- Fallback para versões antigas (se necessário, mas você está na 0.11)
+                require("lspconfig").dartls.setup(dart_opts)
+            end
         end,
     },
     -- DAP base
