@@ -191,8 +191,22 @@ Se algum LSP ou formatter falhar, normalmente é falta da runtime da linguagem n
 - `<leader><C-i>` abre o terminal flutuante
 - `<leader>k` salva todos os buffers
 
+## Multicursor E Movimento
+
+- `<C-A-j>` adiciona um cursor na linha de baixo
+- `<C-A-k>` adiciona um cursor na linha de cima
+- `<C-A-l>` adiciona cursor na próxima ocorrência
+- `<C-A-h>` adiciona cursor na ocorrência anterior
+- `<A-J>` move a linha atual ou bloco selecionado para baixo
+- `<A-K>` move a linha atual ou bloco selecionado para cima
+- `<A-L>` indenta a linha atual ou seleção para a direita
+- `<A-H>` remove indentação da linha atual ou seleção
+
+Para sair do multicursor e voltar para um cursor só, use `<Esc>`.
+
 ## Observações
 
 - O setup é mais completo do que minimalista: ele tenta preparar tooling para várias linguagens.
 - No Windows e no Linux o terminal flutuante escolhe o shell automaticamente.
+- Os atalhos com `Alt` e `Ctrl+Alt` funcionam no Windows e no Linux, mas dependem do terminal ou GUI repassar essas combinações para o Neovim. Se o terminal, o gerenciador de janelas ou o sistema interceptarem o atalho, basta liberar ou remapear fora do Neovim.
 - Se você quiser um setup mais enxuto, o melhor caminho é remover do `lsp.lua` as linguagens que você não usa.

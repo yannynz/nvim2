@@ -42,6 +42,16 @@ vim.keymap.set("n", "<leader><leader>", '<cmd>Oil<CR>')
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
+-- VS Code-like move/indent shortcuts with Shift+Alt+hjkl
+vim.keymap.set("n", "<A-J>", ":m .+1<CR>==", { noremap = true, silent = true })
+vim.keymap.set("n", "<A-K>", ":m .-2<CR>==", { noremap = true, silent = true })
+vim.keymap.set("n", "<A-H>", "<<", { noremap = true, silent = true })
+vim.keymap.set("n", "<A-L>", ">>", { noremap = true, silent = true })
+vim.keymap.set("x", "<A-J>", ":m '>+1<CR>gv=gv", { noremap = true, silent = true })
+vim.keymap.set("x", "<A-K>", ":m '<-2<CR>gv=gv", { noremap = true, silent = true })
+vim.keymap.set("x", "<A-H>", "<gv", { noremap = true, silent = true })
+vim.keymap.set("x", "<A-L>", ">gv", { noremap = true, silent = true })
+
 -- Don't move cursor when Joining lines
 vim.keymap.set("n", "J", "mzJ`z")
 
