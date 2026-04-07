@@ -2,8 +2,20 @@ return {
     {
         "nvim-treesitter/nvim-treesitter",
         build = ":TSUpdate",
+        lazy = false,
         config = function()
-            require 'nvim-treesitter.configs'.setup {
+            local ok, configs = pcall(require, "nvim-treesitter.configs")
+            if not ok then
+                vim.schedule(function()
+                    vim.notify(
+                        "nvim-treesitter nao foi carregado. Rode :Lazy sync e reabra o Neovim.",
+                        vim.log.levels.WARN
+                    )
+                end)
+                return
+            end
+
+            configs.setup({
                 ensure_installed = {
                     "bash",
                     "c", "c_sharp", "cpp",
@@ -34,7 +46,7 @@ return {
                     end,
                     additional_vim_regex_highlighting = false,
                 },
-            }
+            })
         end,
     }
 }

@@ -38,17 +38,50 @@ vim.g.mapleader = " "
 --Go directory
 vim.keymap.set("n", "<leader><leader>", '<cmd>Oil<CR>')
 
+local function duplicate_current_line(direction)
+    local cursor = vim.api.nvim_win_get_cursor(0)
+    local row = cursor[1]
+    local line = vim.api.nvim_get_current_line()
+    local insert_at = direction > 0 and row or (row - 1)
+    local new_row = direction > 0 and (row + 1) or row
+
+    vim.api.nvim_buf_set_lines(0, insert_at, insert_at, false, { line })
+    vim.api.nvim_win_set_cursor(0, { new_row, cursor[2] })
+    vim.cmd("normal! ==")
+end
+
+local function duplicate_visual_lines(direction)
+    local start_line = vim.fn.line("v")
+    local end_line = vim.fn.line(".")
+    if start_line > end_line then
+        start_line, end_line = end_line, start_line
+    end
+
+    local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
+    local insert_at = direction > 0 and end_line or (start_line - 1)
+    local new_start = direction > 0 and (start_line + #lines) or start_line
+    local new_end = new_start + #lines - 1
+
+    vim.api.nvim_buf_set_lines(0, insert_at, insert_at, false, lines)
+    vim.api.nvim_win_set_cursor(0, { new_start, 0 })
+    vim.cmd("normal! V")
+    if new_end > new_start then
+        vim.cmd("normal! " .. (new_end - new_start) .. "j")
+    end
+    vim.cmd("normal! =")
+end
+
 -- Move selected line / block of text in visual mode
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
--- VS Code-like move/indent shortcuts with Shift+Alt+hjkl
-vim.keymap.set("n", "<A-J>", ":m .+1<CR>==", { noremap = true, silent = true })
-vim.keymap.set("n", "<A-K>", ":m .-2<CR>==", { noremap = true, silent = true })
+-- VS Code-like duplicate/indent shortcuts with Shift+Alt+hjkl
+vim.keymap.set("n", "<A-J>", function() duplicate_current_line(1) end, { noremap = true, silent = true })
+vim.keymap.set("n", "<A-K>", function() duplicate_current_line(-1) end, { noremap = true, silent = true })
 vim.keymap.set("n", "<A-H>", "<<", { noremap = true, silent = true })
 vim.keymap.set("n", "<A-L>", ">>", { noremap = true, silent = true })
-vim.keymap.set("x", "<A-J>", ":m '>+1<CR>gv=gv", { noremap = true, silent = true })
-vim.keymap.set("x", "<A-K>", ":m '<-2<CR>gv=gv", { noremap = true, silent = true })
+vim.keymap.set("x", "<A-J>", function() duplicate_visual_lines(1) end, { noremap = true, silent = true })
+vim.keymap.set("x", "<A-K>", function() duplicate_visual_lines(-1) end, { noremap = true, silent = true })
 vim.keymap.set("x", "<A-H>", "<gv", { noremap = true, silent = true })
 vim.keymap.set("x", "<A-L>", ">gv", { noremap = true, silent = true })
 

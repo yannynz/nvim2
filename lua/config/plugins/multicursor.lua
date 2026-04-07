@@ -22,6 +22,9 @@ return {
             mc.matchAddCursor(-1)
         end, { desc = "Multicursor: add previous match cursor" })
 
+        vim.keymap.set("x", "I", mc.insertVisual, { desc = "Multicursor: insert on selected lines" })
+        vim.keymap.set("x", "A", mc.appendVisual, { desc = "Multicursor: append on selected lines" })
+
         mc.addKeymapLayer(function(layerSet)
             layerSet("n", "<Esc>", function()
                 if not mc.cursorsEnabled() then

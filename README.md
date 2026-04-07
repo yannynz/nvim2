@@ -197,8 +197,10 @@ Se algum LSP ou formatter falhar, normalmente é falta da runtime da linguagem n
 - `<C-A-k>` adiciona um cursor na linha de cima
 - `<C-A-l>` adiciona cursor na próxima ocorrência
 - `<C-A-h>` adiciona cursor na ocorrência anterior
-- `<A-J>` move a linha atual ou bloco selecionado para baixo
-- `<A-K>` move a linha atual ou bloco selecionado para cima
+- Depois de criar os cursores, use `i` ou `a` para escrever em todos ao mesmo tempo
+- Em seleção visual de várias linhas, `I` insere no começo de todas e `A` adiciona no fim de todas
+- `<A-J>` duplica a linha atual ou bloco selecionado para baixo
+- `<A-K>` duplica a linha atual ou bloco selecionado para cima
 - `<A-L>` indenta a linha atual ou seleção para a direita
 - `<A-H>` remove indentação da linha atual ou seleção
 
