@@ -1,4 +1,5 @@
 require("config.lazy")
+require("config.sql_svl_union")
 
 --opts
 vim.opt.nu = true
