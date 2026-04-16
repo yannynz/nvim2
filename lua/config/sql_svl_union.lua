@@ -4,6 +4,50 @@ local function normalize_clause(poliza, spto)
     return string.format("( a.num_poliza = '%s' AND A.NUM_SPTO = %s )", poliza, spto)
 end
 
+local function add_clause(svl_map, seen, svl_name, poliza, spto)
+    if not svl_name or not poliza or not spto then
+        return
+    end
+
+    local clause = normalize_clause(poliza, spto)
+    if not seen[svl_name][clause] then
+        seen[svl_name][clause] = true
+        table.insert(svl_map[svl_name], clause)
+    end
+end
+
+local function process_block(block_lines, svl_map, seen)
+    local text = table.concat(block_lines, "\n")
+    local lower_text = text:lower()
+    local targets = {}
+
+    if lower_text:find("tron2000%.a2109406_vcr", 1, false) then
+        targets[#targets + 1] = "SVL509"
+    end
+    if lower_text:find("tron2000%.a2109435_vcr", 1, false) then
+        targets[#targets + 1] = "SVL502"
+    end
+
+    if #targets == 0 then
+        return
+    end
+
+    for _, line in ipairs(block_lines) do
+        local lower_line = line:lower()
+        local poliza, spto = lower_line:match("num_poliza%s*=%s*'([^']+)'%s*and%s*[%a_][%w_]*%.?num_spto%s*=%s*([0-9]+)")
+
+        if not poliza or not spto then
+            poliza, spto = lower_line:match("num_poliza%s*=%s*'([^']+)'%s*and%s*num_spto%s*=%s*([0-9]+)")
+        end
+
+        if poliza and spto then
+            for _, target in ipairs(targets) do
+                add_clause(svl_map, seen, target, poliza, spto)
+            end
+        end
+    end
+end
+
 local function render_section(name, items)
     local lines = { name }
 
@@ -30,35 +74,34 @@ function M.collect_from_lines(lines)
         SVL502 = {},
     }
 
-    local current_svl = nil
-    local inside_target_select = false
+    local block_lines = {}
+    local block_depth = 0
 
     for _, line in ipairs(lines) do
-        if line:match("^%s*%-%-%s*SCRIPT%s+509") then
-            current_svl = "SVL509"
-            inside_target_select = false
-        elseif line:match("^%s*%-%-%s*SCRIPT%s+502") then
-            current_svl = "SVL502"
-            inside_target_select = false
-        elseif line:match("FOR%s+REG%s+IN%s*%(%s*SELECT%s+%*%s+FROM%s+TRON2000%.A2109406_VCR%s+A") then
-            current_svl = "SVL509"
-            inside_target_select = true
-        elseif line:match("FOR%s+REG%s+IN%s*%(%s*SELECT%s+%*%s+FROM%s+TRON2000%.A2109435_VCR%s+A") then
-            current_svl = "SVL502"
-            inside_target_select = true
-        elseif inside_target_select and line:match("%)%s*LOOP") then
-            inside_target_select = false
+        local lower_line = line:lower()
+        local begin_count = 0
+        local end_count = 0
+
+        for _ in lower_line:gmatch("%f[%a]begin%f[%A]") do
+            begin_count = begin_count + 1
+        end
+        for _ in lower_line:gmatch("%f[%a]end%f[%A]%s*;") do
+            end_count = end_count + 1
         end
 
-        if current_svl and inside_target_select then
-            local poliza, spto = line:match("a%.num_poliza%s*=%s*'([^']+)'%s+and%s+a%.num_spto%s*=%s*([0-9]+)")
-            if poliza and spto then
-                local clause = normalize_clause(poliza, spto)
-                if not seen[current_svl][clause] then
-                    seen[current_svl][clause] = true
-                    table.insert(svl_map[current_svl], clause)
-                end
-            end
+        if begin_count > 0 and block_depth == 0 then
+            block_lines = {}
+        end
+
+        if block_depth > 0 or begin_count > 0 then
+            block_lines[#block_lines + 1] = line
+        end
+
+        block_depth = block_depth + begin_count - end_count
+
+        if block_depth == 0 and #block_lines > 0 then
+            process_block(block_lines, svl_map, seen)
+            block_lines = {}
         end
     end
 
