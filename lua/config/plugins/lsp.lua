@@ -18,6 +18,49 @@ return {
             -- 0) capabilities via blink.cmp
             local capabilities = require("blink.cmp").get_lsp_capabilities()
             local util = require("lspconfig.util")
+            local ok_local, local_cfg = pcall(require, "config.local")
+            local machine_cfg = ok_local and local_cfg or {}
+            local lsp_machine_cfg = machine_cfg.lsp or {}
+
+            local function list_contains(list, value)
+                return type(list) == "table" and vim.tbl_contains(list, value)
+            end
+
+            local function select_enabled(defaults, enabled)
+                if type(enabled) ~= "table" then
+                    return defaults
+                end
+
+                local enabled_set = {}
+                for _, item in ipairs(enabled) do
+                    enabled_set[item] = true
+                end
+
+                local selected = {}
+                for _, item in ipairs(defaults) do
+                    if enabled_set[item] then
+                        table.insert(selected, item)
+                        enabled_set[item] = nil
+                    end
+                end
+
+                for item in pairs(enabled_set) do
+                    table.insert(selected, item)
+                end
+
+                return selected
+            end
+
+            local function feature_enabled(key, fallback_server)
+                local value = lsp_machine_cfg[key]
+                if type(value) == "boolean" then
+                    return value
+                end
+                if fallback_server and type(lsp_machine_cfg.enabled_servers) == "table" then
+                    return list_contains(lsp_machine_cfg.enabled_servers, fallback_server)
+                end
+                return true
+            end
 
             local function fallback_root(bufnr)
                 local fname = vim.api.nvim_buf_get_name(bufnr)
@@ -48,7 +91,7 @@ return {
             -- 1) mason + mason-lspconfig (v2)
             require("mason").setup()
             local has_go = vim.fn.executable("go") == 1
-            local mason_lsp_servers = {
+            local default_mason_lsp_servers = {
                 -- Java / Spring
                 "jdtls",
                 -- C#
@@ -66,8 +109,11 @@ return {
                 -- Rust (Adicionado para garantir suporte)
                 "rust_analyzer",
             }
+            local mason_lsp_servers = select_enabled(default_mason_lsp_servers, lsp_machine_cfg.enabled_servers)
             if has_go then
-                table.insert(mason_lsp_servers, "gopls")
+                if type(lsp_machine_cfg.enabled_servers) ~= "table" or list_contains(lsp_machine_cfg.enabled_servers, "gopls") then
+                    table.insert(mason_lsp_servers, "gopls")
+                end
             else
                 vim.notify("Go (binário 'go') não encontrado no PATH; pulando instalação de gopls e ferramentas Go.", vim.log.levels.WARN)
             end
@@ -296,15 +342,17 @@ return {
                 })
             end
 
-            local java_group = vim.api.nvim_create_augroup("UserJdtls", { clear = true })
-            vim.api.nvim_create_autocmd("FileType", {
-                pattern = "java",
-                group = java_group,
-                callback = setup_java,
-            })
+            if feature_enabled("enable_java", "jdtls") then
+                local java_group = vim.api.nvim_create_augroup("UserJdtls", { clear = true })
+                vim.api.nvim_create_autocmd("FileType", {
+                    pattern = "java",
+                    group = java_group,
+                    callback = setup_java,
+                })
+            end
 
             -- 5) DAPs e ferramentas
-            local mason_tools = {
+            local default_mason_tools = {
                 "prettierd", "eslint_d", "biome",
                 "black", "ruff", "google-java-format",
                 "csharpier",
@@ -312,8 +360,18 @@ return {
                 "hadolint", "nginx-language-server", "nginx-config-formatter",
                 "shellcheck", "shfmt",
             }
+            local mason_tools = select_enabled(default_mason_tools, lsp_machine_cfg.enabled_tools)
             if has_go then
-                vim.list_extend(mason_tools, { "gofumpt", "goimports", "gci", "golines", "staticcheck" })
+                local go_tools = { "gofumpt", "goimports", "gci", "golines", "staticcheck" }
+                if type(lsp_machine_cfg.enabled_tools) ~= "table" then
+                    vim.list_extend(mason_tools, go_tools)
+                else
+                    for _, tool in ipairs(go_tools) do
+                        if list_contains(lsp_machine_cfg.enabled_tools, tool) then
+                            table.insert(mason_tools, tool)
+                        end
+                    end
+                end
             end
             require("mason-tool-installer").setup({
                 ensure_installed = mason_tools,
@@ -324,25 +382,27 @@ return {
             -- 6) Dart: configure “por fora” do Mason
             -- Requer Dart/Flutter no PATH; não coloque em ensure_installed
             -- Uso de vim.lsp.config (Nativo Nvim 0.11) para evitar warnings de deprecation
-            local dart_opts = {
-                capabilities = capabilities,
-                on_attach = on_attach,
-            }
-            
-            -- Tenta carregar defaults do nvim-lspconfig se disponível
-            local ok_configs, configs = pcall(require, "lspconfig.configs")
-            if ok_configs and configs["dartls"] then
-                local defaults = configs["dartls"].default_config or {}
-                dart_opts = vim.tbl_deep_extend("force", defaults, dart_opts)
-            end
+            if feature_enabled("enable_dart", "dartls") then
+                local dart_opts = {
+                    capabilities = capabilities,
+                    on_attach = on_attach,
+                }
 
-            -- Registra e habilita o servidor
-            if vim.lsp.config then
-                vim.lsp.config("dartls", dart_opts)
-                vim.lsp.enable("dartls")
-            else
-                -- Fallback para versões antigas (se necessário, mas você está na 0.11)
-                require("lspconfig").dartls.setup(dart_opts)
+                -- Tenta carregar defaults do nvim-lspconfig se disponível
+                local ok_configs, configs = pcall(require, "lspconfig.configs")
+                if ok_configs and configs["dartls"] then
+                    local defaults = configs["dartls"].default_config or {}
+                    dart_opts = vim.tbl_deep_extend("force", defaults, dart_opts)
+                end
+
+                -- Registra e habilita o servidor
+                if vim.lsp.config then
+                    vim.lsp.config("dartls", dart_opts)
+                    vim.lsp.enable("dartls")
+                else
+                    -- Fallback para versões antigas (se necessário, mas você está na 0.11)
+                    require("lspconfig").dartls.setup(dart_opts)
+                end
             end
         end,
     },
@@ -366,9 +426,31 @@ return {
             "mfussenegger/nvim-dap",
         },
         opts = function()
-            local dap_adapters = { "python", "java", "codelldb", "netcoredbg", "js" }
+            local ok_local, local_cfg = pcall(require, "config.local")
+            local lsp_machine_cfg = ok_local and (local_cfg.lsp or {}) or {}
+            local default_dap_adapters = { "python", "java", "codelldb", "netcoredbg", "js" }
+            local dap_adapters = vim.deepcopy(default_dap_adapters)
+            if type(lsp_machine_cfg.enabled_dap_adapters) == "table" then
+                local enabled_set = {}
+                dap_adapters = {}
+                for _, item in ipairs(lsp_machine_cfg.enabled_dap_adapters) do
+                    enabled_set[item] = true
+                end
+                for _, item in ipairs(default_dap_adapters) do
+                    if enabled_set[item] then
+                        table.insert(dap_adapters, item)
+                        enabled_set[item] = nil
+                    end
+                end
+                for item in pairs(enabled_set) do
+                    table.insert(dap_adapters, item)
+                end
+            end
             if vim.fn.executable("go") == 1 then
-                table.insert(dap_adapters, "delve")
+                if type(lsp_machine_cfg.enabled_dap_adapters) ~= "table"
+                    or vim.tbl_contains(lsp_machine_cfg.enabled_dap_adapters, "delve") then
+                    table.insert(dap_adapters, "delve")
+                end
             end
             return {
                 -- instale os adapters que você usa

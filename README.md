@@ -212,3 +212,4 @@ Para sair do multicursor e voltar para um cursor só, use `<Esc>`.
 - No Windows e no Linux o terminal flutuante escolhe o shell automaticamente.
 - Os atalhos com `Alt` e `Ctrl+Alt` funcionam no Windows e no Linux, mas dependem do terminal ou GUI repassar essas combinações para o Neovim. Se o terminal, o gerenciador de janelas ou o sistema interceptarem o atalho, basta liberar ou remapear fora do Neovim.
 - Se você quiser um setup mais enxuto, o melhor caminho é remover do `lsp.lua` as linguagens que você não usa.
+- Para ter uma máquina “capada” sem mexer no setup principal, crie `lua/config/local.lua` baseado em `lua/config/local.example.lua` e deixe só os LSPs/tools/DAPs que quer manter.
