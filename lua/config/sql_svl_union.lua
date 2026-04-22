@@ -1,4 +1,11 @@
 local M = {}
+local svl_order = { "SVL502", "SVL503", "SVL505", "SVL509" }
+local svl_tables = {
+    SVL502 = "tron2000.a2109435_vcr",
+    SVL503 = "tron2000.a2109393_vcr",
+    SVL505 = "tron2000.a2109457_vcr",
+    SVL509 = "tron2000.a2109406_vcr",
+}
 
 local function normalize_clause(poliza, spto)
     return string.format("( a.num_poliza = '%s' AND A.NUM_SPTO = %s )", poliza, spto)
@@ -21,11 +28,10 @@ local function process_block(block_lines, svl_map, seen)
     local lower_text = text:lower()
     local targets = {}
 
-    if lower_text:find("tron2000%.a2109406_vcr", 1, false) then
-        targets[#targets + 1] = "SVL509"
-    end
-    if lower_text:find("tron2000%.a2109435_vcr", 1, false) then
-        targets[#targets + 1] = "SVL502"
+    for svl_name, table_name in pairs(svl_tables) do
+        if lower_text:find(table_name, 1, true) then
+            targets[#targets + 1] = svl_name
+        end
     end
 
     if #targets == 0 then
@@ -65,14 +71,13 @@ local function render_section(name, items)
 end
 
 function M.collect_from_lines(lines)
-    local svl_map = {
-        SVL509 = {},
-        SVL502 = {},
-    }
-    local seen = {
-        SVL509 = {},
-        SVL502 = {},
-    }
+    local svl_map = {}
+    local seen = {}
+
+    for _, svl_name in ipairs(svl_order) do
+        svl_map[svl_name] = {}
+        seen[svl_name] = {}
+    end
 
     local block_lines = {}
     local block_depth = 0
@@ -111,9 +116,12 @@ end
 function M.render_lines(svl_map)
     local lines = {}
 
-    vim.list_extend(lines, render_section("SVL509", svl_map.SVL509 or {}))
-    lines[#lines + 1] = ""
-    vim.list_extend(lines, render_section("SVL502", svl_map.SVL502 or {}))
+    for index, svl_name in ipairs(svl_order) do
+        vim.list_extend(lines, render_section(svl_name, svl_map[svl_name] or {}))
+        if index < #svl_order then
+            lines[#lines + 1] = ""
+        end
+    end
 
     return lines
 end
@@ -140,7 +148,7 @@ end
 vim.api.nvim_create_user_command("SqlSvlUnion", function()
     M.open_result_buffer()
 end, {
-    desc = "Consolida filtros de SVL502 e SVL509 do buffer atual",
+    desc = "Consolida filtros de SVL502, SVL503, SVL505 e SVL509 do buffer atual",
 })
 
 return M
