@@ -176,35 +176,170 @@ Se quiser conferir se está tudo certo:
 
 Se algum LSP ou formatter falhar, normalmente é falta da runtime da linguagem no `PATH`.
 
-## Atalhos Principais
+## Atalhos E Comandos
 
-`Leader` = `Espaço`
+Esta seção lista os atalhos que esta config adiciona ou sobrescreve. O resto continua seguindo o comportamento normal do Neovim.
 
-- `<leader><leader>` abre o explorador de arquivos
-- `<space>pf` busca arquivos
-- `<space>ps` faz busca por texto no projeto
-- `<leader>e` abre diagnósticos do buffer
-- `<leader>f` formata via LSP
-- `<leader>gg` abre o Git
-- `<leader>a` adiciona arquivo no Harpoon
-- `<C-e>` abre o menu do Harpoon
-- `<leader><C-i>` abre o terminal flutuante
+### Convenções
+
+- `Leader` = `Espaço`
+- `Alt` e `Meta` são a mesma coisa aqui: `<A-x>` = `<M-x>`
+- Letras maiúsculas como `H`, `J`, `K`, `L`, `S` significam `Shift` + letra
+
+### Arquivos, Busca E Diagnóstico
+
+- `<leader><leader>` abre o explorador de arquivos com `Oil`
+- `<space>pf` busca arquivos com `Telescope`
+- `<space>ps` faz busca por texto no projeto com `Telescope live_grep`
+- `<leader>e` abre os diagnósticos do buffer atual com `Trouble`
+- `<leader>pe` abre a lista de diagnósticos no `Telescope`
+- `<leader>cn` copia para a área de transferência apenas o nome do arquivo atual
+
+### Navegação E Movimento
+
+- `H` volta para o começo da palavra anterior
+- `L` vai até o fim da palavra atual ou da próxima palavra
+- `K` sobe para o bloco/parágrafo anterior
+- `J` desce para o próximo bloco/parágrafo
+- `n` vai para a próxima busca e centraliza a tela
+- `N` vai para a busca anterior e centraliza a tela
+- `<C-d>` desce meia página e centraliza a tela
+- `<C-u>` sobe meia página e centraliza a tela
+- `s` ativa o `Leap` para saltar para frente
+- `S` ativa o `Leap` para saltar para trás
+- `gs` ativa o `Leap` entre janelas
+- Em modo visual ou operador: `x` faz `Leap` até antes do alvo para frente
+- Em modo visual ou operador: `X` faz `Leap` até antes do alvo para trás
+
+### Edição De Texto
+
+- Em modo visual: `J` move a seleção uma linha para baixo e reindenta
+- Em modo visual: `K` move a seleção uma linha para cima e reindenta
+- `<leader>j` junta a linha atual com a próxima sem perder a posição do cursor
+- `<leader>p` cola por cima da seleção sem destruir o registrador padrão
+- `<leader>y` copia para a área de transferência do sistema
+- `<leader>Y` copia a linha atual para a área de transferência do sistema
+- `<leader>s` já abre a substituição da palavra sob o cursor no arquivo inteiro
+- Em modo visual: `<` diminui a indentação e mantém a seleção
+- Em modo visual: `>` aumenta a indentação e mantém a seleção
+
+### Duplicação E Indentação Rápida
+
+- Em modo normal: `<A-J>` duplica a linha atual para baixo
+- Em modo normal: `<A-K>` duplica a linha atual para cima
+- Em modo normal: `<A-H>` remove indentação da linha atual
+- Em modo normal: `<A-L>` adiciona indentação à linha atual
+- Em modo visual: `<A-J>` duplica o bloco selecionado para baixo
+- Em modo visual: `<A-K>` duplica o bloco selecionado para cima
+- Em modo visual: `<A-H>` remove indentação da seleção
+- Em modo visual: `<A-L>` adiciona indentação à seleção
+
+### Janelas, Quickfix E Scroll Horizontal
+
+- `<leader>w` envia o prefixo de janelas do Neovim (`<C-w>`). Exemplo: `<leader>wv`, `<leader>ws`, `<leader>wh`
+- `<Up>` diminui a altura da janela atual
+- `<Down>` aumenta a altura da janela atual
+- `<Left>` diminui a largura da janela atual
+- `<Right>` aumenta a largura da janela atual
+- `<C-f>` vai para o próximo item da quickfix
+- `<C-b>` volta para o item anterior da quickfix
+- `<leader><C-L>` desloca horizontalmente a visualização para a direita
+- `<leader><C-H>` desloca horizontalmente a visualização para a esquerda
+
+### Salvar, Sair E Prompt
+
 - `<leader>k` salva todos os buffers
+- `<M-s>` salva todos os buffers
+- `<M-q>` fecha o Neovim inteiro
+- `<M-t>` abre o prompt de comando `:`
+- `<M-m>` abre o `Mason`
 
-## Multicursor E Movimento
+### Terminal Flutuante
+
+- Em modo normal: `<leader><C-i>` abre ou fecha o terminal flutuante
+- Em modo terminal: `<leader><C-i>` fecha o terminal flutuante
+- Em modo terminal: `<leader>q` sai do modo terminal e volta para o modo normal
+- Em modo terminal: `<Tab>` insere um `Tab` literal dentro do shell
+
+### Git
+
+- `<leader>gg` abre o `vim-fugitive` com `:Git`
+- `<leader>gp` roda `:Git pull`
+- `<leader>gl` liga ou desliga o blame da linha atual com `Gitsigns`
+- `<leader>gld` liga ou desliga diff por palavra, linhas deletadas e destaque de linha com `Gitsigns`
+
+### Harpoon
+
+- `<leader>a` adiciona o arquivo atual à lista do `Harpoon`
+- `<C-e>` abre ou fecha o menu rápido do `Harpoon`
+- `<C-j>` abre o item 1 do `Harpoon`
+- `<C-k>` abre o item 2 do `Harpoon`
+- `<C-l>` abre o item 3 do `Harpoon`
+- `<C-m>` abre o item 4 do `Harpoon`
+
+### Multicursor
 
 - `<C-A-j>` adiciona um cursor na linha de baixo
 - `<C-A-k>` adiciona um cursor na linha de cima
-- `<C-A-l>` adiciona cursor na próxima ocorrência
+- `<C-A-l>` adiciona cursor na próxima ocorrência do texto
 - `<C-A-h>` adiciona cursor na ocorrência anterior
-- Depois de criar os cursores, use `i` ou `a` para escrever em todos ao mesmo tempo
-- Em seleção visual de várias linhas, `I` insere no começo de todas e `A` adiciona no fim de todas
-- `<A-J>` duplica a linha atual ou bloco selecionado para baixo
-- `<A-K>` duplica a linha atual ou bloco selecionado para cima
-- `<A-L>` indenta a linha atual ou seleção para a direita
-- `<A-H>` remove indentação da linha atual ou seleção
+- Em modo visual: `I` insere no começo de todas as linhas selecionadas
+- Em modo visual: `A` adiciona no fim de todas as linhas selecionadas
+- Depois de criar os cursores, use `i` ou `a` normalmente para editar em todos ao mesmo tempo
+- `<Esc>` limpa os cursores extras e volta para um cursor só
 
-Para sair do multicursor e voltar para um cursor só, use `<Esc>`.
+### LSP
+
+Esses atalhos só existem no buffer quando um servidor LSP está anexado.
+
+- `gd` vai para a definição
+- `gD` vai para a declaração
+- `gi` vai para a implementação
+- `gr` lista referências
+- `gH` abre o hover/documentação do símbolo
+- `<C-k>` mostra a assinatura da função
+- `<leader>rn` renomeia símbolo
+- `<leader>ca` abre code actions
+- `<leader>f` formata o buffer via LSP
+
+### DAP Debug
+
+- `<F5>` continua a execução
+- `<F10>` step over
+- `<F11>` step into
+- `<F12>` step out
+- `<leader>b` alterna breakpoint
+
+### Autocomplete E Copilot
+
+O `blink.cmp` está com o preset `enter`, então em modo insert:
+
+- `<CR>` aceita o item selecionado da autocomplete
+- `<C-space>` abre o menu de autocomplete e alterna a documentação
+- `<C-e>` cancela o menu de autocomplete
+- `<Up>` e `<Down>` navegam na lista de sugestões
+- `<C-p>` e `<C-n>` navegam na lista de sugestões
+- `<C-b>` e `<C-f>` rolam a documentação da sugestão
+- `<C-k>` mostra ou esconde a assinatura
+- `<S-Tab>` volta no snippet
+
+O comportamento de `Copilot` em modo insert ficou assim:
+
+- `<Tab>` avança snippet quando houver snippet ativo; se houver sugestão visível do Copilot, aceita a sugestão; caso contrário insere `Tab`
+- `<C-l>` aceita a sugestão inteira do Copilot
+- `<C-\>` aceita só a próxima palavra do Copilot
+- `<C-|>` aceita só a próxima linha do Copilot
+
+### Comandos Customizados
+
+- `:SqlSvlUnion` lê o buffer SQL atual e abre um novo buffer com os filtros consolidados de `SVL502`, `SVL503`, `SVL505` e `SVL509`
+
+### Notas Importantes Sobre Sobrescritas
+
+- `J` e `K` em modo normal foram redefinidos para navegação por bloco. Para juntar linhas, use `<leader>j`
+- `K` não abre mais hover do LSP. O hover agora fica em `gH`
+- Em buffers com LSP, o `<C-k>` do LSP tem prioridade sobre o `<C-k>` global do Harpoon
+- O `s` padrão do Vim foi trocado pelo `Leap`. Se você era acostumado a usar `s` para substituir um caractere, esse comportamento mudou
 
 ## Observações
 

@@ -124,7 +124,7 @@ return {
                 map("n", "gD", vim.lsp.buf.declaration, "LSP: Go to Declaration")
                 map("n", "gi", vim.lsp.buf.implementation, "LSP: Go to Implementation")
                 map("n", "gr", vim.lsp.buf.references, "LSP: References")
-                map("n", "K", vim.lsp.buf.hover, "LSP: Hover")
+                map("n", "gH", vim.lsp.buf.hover, "LSP: Hover")
                 map("n", "<C-k>", vim.lsp.buf.signature_help, "LSP: Signature")
                 map("n", "<leader>rn", vim.lsp.buf.rename, "LSP: Rename")
                 map("n", "<leader>ca", vim.lsp.buf.code_action, "LSP: Code Action")

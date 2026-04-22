@@ -86,8 +86,14 @@ vim.keymap.set("x", "<A-K>", function() duplicate_visual_lines(-1) end, { norema
 vim.keymap.set("x", "<A-H>", "<gv", { noremap = true, silent = true })
 vim.keymap.set("x", "<A-L>", ">gv", { noremap = true, silent = true })
 
--- Don't move cursor when Joining lines
-vim.keymap.set("n", "J", "mzJ`z")
+-- VS Code-like navigation on Shift+hjkl
+vim.keymap.set("n", "H", "b", { noremap = true, silent = true })
+vim.keymap.set("n", "L", "e", { noremap = true, silent = true })
+vim.keymap.set("n", "K", "{", { noremap = true, silent = true })
+vim.keymap.set("n", "J", "}", { noremap = true, silent = true })
+
+-- Preserve join-lines without conflicting with Shift+j navigation
+vim.keymap.set("n", "<leader>j", "mzJ`z", { noremap = true, silent = true })
 
 -- Don't move cursor when scrolling
 vim.keymap.set("n", "<C-d>", "<C-d>zz")
