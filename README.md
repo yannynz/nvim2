@@ -333,6 +333,9 @@ O comportamento de `Copilot` em modo insert ficou assim:
 ### Comandos Customizados
 
 - `:SqlSvlUnion` lê o buffer SQL atual e abre um novo buffer com os filtros consolidados de `SVL502`, `SVL503`, `SVL505` e `SVL509`
+- `:SqlApolicesAnalista` usa por padrão a data de hoje para localizar `errosDDMMYY.html`, cruza com os lotes SQL e lista as apólices agrupadas por analista no formato `'apolice',`
+- `:SqlApolicesAnalista 220426` faz a mesma consulta para uma data específica
+- `:SqlApolicesAnalista 22/04/2026` também aceita data com barras
 
 ### Notas Importantes Sobre Sobrescritas
 
