@@ -51,6 +51,7 @@ Se você usa essas stacks, vale ter as runtimes no `PATH`:
 - `python` para ferramentas Python
 - `flutter` / `dart` para Flutter
 - `.NET` para C#
+- `sql`, `sqlcl` ou `sqlplus` se quiser validação real de PL/SQL Oracle
 
 Sem isso, o Neovim abre normal, mas algumas instalações do Mason podem ser puladas ou gerar aviso.
 
@@ -175,6 +176,42 @@ Se quiser conferir se está tudo certo:
 ```
 
 Se algum LSP ou formatter falhar, normalmente é falta da runtime da linguagem no `PATH`.
+
+## Suporte A PL/SQL Oracle
+
+Esta config agora tem uma camada local para PL/SQL que nao depende de LSP real para ficar utilizavel em maquina travada.
+
+### O Que Funciona Sem Instalar LSP
+
+- detecta extensoes Oracle como `.pks`, `.pkb`, `.pls`, `.plb`, `.prc`, `.fnc`, `.trg`, `.tps` e `.tpb` como `plsql`
+- tenta promover `.sql` para `plsql` quando o conteudo parecer Oracle
+- ativa formatter local para reindentar blocos `DECLARE/BEGIN/EXCEPTION/END`
+- ativa `gd` para procurar definicao local ou no workspace
+- ativa `gH` para hover basico de palavras-chave PL/SQL
+- ativa omni completion via `syntaxcomplete`
+
+### O Que Funciona Se Houver Cliente Oracle No PATH
+
+Se existir `sql`, `sqlcl` ou `sqlplus`, voce ganha validacao do buffer atual com:
+
+- `<leader>pc`
+- `:PlsqlCheck`
+
+Para isso, defina uma conexao em variavel de ambiente:
+
+```bash
+export PLSQL_CONNECT_STRING='usuario/senha@host:1521/servico'
+```
+
+Ou:
+
+```bash
+export ORACLE_CONNECT_STRING='usuario/senha@host:1521/servico'
+```
+
+### Limite Real
+
+Isso melhora bastante a experiencia no Neovim, mas nao substitui um LSP Oracle completo. A parte de formatacao, navegacao e hover roda localmente; compilacao e erros reais dependem de `sqlcl/sqlplus`.
 
 ## Atalhos E Comandos
 
@@ -301,6 +338,18 @@ Esses atalhos só existem no buffer quando um servidor LSP está anexado.
 - `<leader>rn` renomeia símbolo
 - `<leader>ca` abre code actions
 - `<leader>f` formata o buffer via LSP
+
+### PL/SQL Oracle
+
+Em buffers `plsql` ou `sql` sem LSP Oracle:
+
+- `gd` procura a definicao do simbolo no buffer atual e depois no workspace
+- `gH` abre um hover curto para palavras-chave PL/SQL conhecidas
+- `<leader>f` formata o buffer com o formatter local de PL/SQL
+- `<leader>pc` valida o buffer via `sql`, `sqlcl` ou `sqlplus`, se configurado
+- `:PlsqlFormat` formata o buffer atual
+- `:PlsqlCheck` valida o buffer atual usando a conexao Oracle configurada
+- `:PlsqlDefinition` procura a definicao do simbolo atual
 
 ### DAP Debug
 

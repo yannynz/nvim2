@@ -30,6 +30,7 @@ return {
                     "markdown", "markdown_inline",
                     "python",
                     "query",
+                    "sql",
                     "toml",
                     "vim", "vimdoc",
                     "yaml",

@@ -1,4 +1,5 @@
 require("config.lazy")
+require("config.plsql")
 require("config.sql_svl_union")
 require("config.sql_apolices_analista")
 
