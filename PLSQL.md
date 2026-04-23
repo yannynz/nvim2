@@ -136,3 +136,4 @@ O que ainda depende de tooling Oracle real:
 - semantic completion de schema
 - introspeccao profunda de objetos do banco
 - experiencias equivalentes a SQL Developer ou extensao Oracle do VS Code
+
