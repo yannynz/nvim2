@@ -8,6 +8,7 @@ Sem depender de um LSP Oracle completo, esta config ja entrega:
 
 - reconhecimento de arquivos Oracle como `plsql`
 - formatter local para reindentar blocos PL/SQL
+- preservacao da linha `/` sem espacos para execucao no PL/SQL Developer ou SQL*Plus
 - `gd` para procurar definicao no buffer e no workspace
 - `gH` para hover basico de palavras-chave
 - `:PlsqlCheck` para validar o buffer atual via cliente Oracle, se houver
@@ -136,4 +137,3 @@ O que ainda depende de tooling Oracle real:
 - semantic completion de schema
 - introspeccao profunda de objetos do banco
 - experiencias equivalentes a SQL Developer ou extensao Oracle do VS Code
-

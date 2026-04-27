@@ -41,8 +41,8 @@ local function is_blank(line)
     return line:match("^%s*$") ~= nil
 end
 
-local function first_word(text)
-    return text:match("^%s*([%a_]+)")
+local function is_sqlplus_execute_line(line)
+    return line:match("^%s*/%s*$") ~= nil
 end
 
 local function oracle_client()
@@ -147,6 +147,8 @@ local function reindent(lines, shiftwidth)
 
         if is_blank(line) then
             table.insert(formatted, "")
+        elseif is_sqlplus_execute_line(line) then
+            table.insert(formatted, "/")
         else
             local current = indent
             if decrease_before(line) then

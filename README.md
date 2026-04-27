@@ -186,6 +186,7 @@ Esta config agora tem uma camada local para PL/SQL que nao depende de LSP real p
 - detecta extensoes Oracle como `.pks`, `.pkb`, `.pls`, `.plb`, `.prc`, `.fnc`, `.trg`, `.tps` e `.tpb` como `plsql`
 - tenta promover `.sql` para `plsql` quando o conteudo parecer Oracle
 - ativa formatter local para reindentar blocos `DECLARE/BEGIN/EXCEPTION/END`
+- preserva linhas de execucao SQL*Plus com exatamente `/`, sem espacos
 - ativa `gd` para procurar definicao local ou no workspace
 - ativa `gH` para hover basico de palavras-chave PL/SQL
 - ativa omni completion via `syntaxcomplete`
