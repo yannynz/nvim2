@@ -9,6 +9,8 @@ Sem depender de um LSP Oracle completo, esta config ja entrega:
 - reconhecimento de arquivos Oracle como `plsql`
 - formatter local para reindentar blocos PL/SQL
 - preservacao da linha `/` sem espacos para execucao no PL/SQL Developer ou SQL*Plus
+- indentacao nativa do Neovim respeitando a linha `/`
+- normalizacao automatica de `    /` para `/` ao salvar
 - `gd` para procurar definicao no buffer e no workspace
 - `gH` para hover basico de palavras-chave
 - `:PlsqlCheck` para validar o buffer atual via cliente Oracle, se houver

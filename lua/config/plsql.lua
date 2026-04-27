@@ -167,6 +167,34 @@ local function reindent(lines, shiftwidth)
     return formatted
 end
 
+local function indent_for_line(lines, target_lnum, shiftwidth)
+    local indent = 0
+
+    for lnum = 1, target_lnum do
+        local line = trim_right(lines[lnum] or "")
+
+        if not is_blank(line) and not is_sqlplus_execute_line(line) then
+            local current = indent
+            if decrease_before(line) then
+                current = math.max(indent - 1, 0)
+            end
+
+            if lnum == target_lnum then
+                return current * shiftwidth
+            end
+
+            indent = current
+            if increase_after(line) then
+                indent = indent + 1
+            end
+        elseif lnum == target_lnum then
+            return 0
+        end
+    end
+
+    return 0
+end
+
 local function gather_buffer_symbols(bufnr)
     local symbols = {}
     local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -221,6 +249,37 @@ function M.format_current_buffer()
 
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, formatted)
     vim.fn.winrestview(view)
+end
+
+function M.indentexpr()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local lnum = vim.v.lnum
+    local line = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, false)[1] or ""
+
+    if is_sqlplus_execute_line(line) then
+        return 0
+    end
+
+    local shiftwidth = vim.bo[bufnr].shiftwidth > 0 and vim.bo[bufnr].shiftwidth or vim.o.shiftwidth
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, lnum, false)
+    return indent_for_line(lines, lnum, shiftwidth)
+end
+
+function M.normalize_sqlplus_execute_lines(bufnr)
+    bufnr = bufnr or vim.api.nvim_get_current_buf()
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local changed = false
+
+    for index, line in ipairs(lines) do
+        if is_sqlplus_execute_line(line) and line ~= "/" then
+            lines[index] = "/"
+            changed = true
+        end
+    end
+
+    if changed then
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+    end
 end
 
 function M.show_hover()
@@ -367,6 +426,7 @@ function M.setup_buffer(bufnr)
     vim.bo[bufnr].suffixesadd = ".sql,.pls,.plb,.pks,.pkb,.prc,.fnc,.trg,.tps,.tpb"
     vim.bo[bufnr].omnifunc = "syntaxcomplete#Complete"
     vim.bo[bufnr].iskeyword = vim.bo[bufnr].iskeyword .. ",#,$"
+    vim.bo[bufnr].indentexpr = "v:lua.require'config.plsql'.indentexpr()"
 
     local opts = { buffer = bufnr, silent = true, noremap = true }
     vim.keymap.set("n", "gd", M.goto_definition, opts)
@@ -402,7 +462,8 @@ function M.setup()
                 or sample:match("create%s+or%s+replace%s+procedure")
                 or sample:match("create%s+or%s+replace%s+function")
                 or sample:match("create%s+or%s+replace%s+trigger")
-                or sample:match("^%s*declare%s")
+                or sample:match("^[%s\n\r]*declare%s")
+                or sample:match("[\n\r]%s*declare%s")
             then
                 vim.bo[args.buf].filetype = "plsql"
             end
@@ -414,6 +475,14 @@ function M.setup()
         pattern = { "plsql", "sql" },
         callback = function(args)
             M.setup_buffer(args.buf)
+        end,
+    })
+
+    vim.api.nvim_create_autocmd("BufWritePre", {
+        group = group,
+        pattern = { "*.sql", "*.pls", "*.plb", "*.pks", "*.pkb", "*.prc", "*.fnc", "*.trg", "*.tps", "*.tpb" },
+        callback = function(args)
+            M.normalize_sqlplus_execute_lines(args.buf)
         end,
     })
 
