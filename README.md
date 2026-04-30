@@ -179,12 +179,12 @@ Se algum LSP ou formatter falhar, normalmente é falta da runtime da linguagem n
 
 ## Nome Do Arquivo Atual
 
-Para evitar confundir os lotes diarios, a config deixa o arquivo atual mais visivel em dois pontos:
+Para evitar confundir os lotes diarios, a config deixa o arquivo atual mais visivel na `lualine`.
 
-- uma barra no topo da janela com `ARQUIVO: nome_do_arquivo`
-- a `lualine` com o nome do arquivo em destaque
+- o nome do arquivo aparece em destaque
+- arquivos `queryDDMMYY.sql` tambem mostram a data do lote, por exemplo `LOTE 27/04/2026`
 
-Arquivos `queryDDMMYY.sql` tambem mostram a data do lote, por exemplo `LOTE 27/04/2026`.
+Nao ha barra extra acima da aba/janela.
 
 ## Suporte A PL/SQL Oracle
 
