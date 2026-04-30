@@ -177,6 +177,15 @@ Se quiser conferir se está tudo certo:
 
 Se algum LSP ou formatter falhar, normalmente é falta da runtime da linguagem no `PATH`.
 
+## Nome Do Arquivo Atual
+
+Para evitar confundir os lotes diarios, a config deixa o arquivo atual mais visivel em dois pontos:
+
+- uma barra no topo da janela com `ARQUIVO: nome_do_arquivo`
+- a `lualine` com o nome do arquivo em destaque
+
+Arquivos `queryDDMMYY.sql` tambem mostram a data do lote, por exemplo `LOTE 27/04/2026`.
+
 ## Suporte A PL/SQL Oracle
 
 Esta config agora tem uma camada local para PL/SQL que nao depende de LSP real para ficar utilizavel em maquina travada.
