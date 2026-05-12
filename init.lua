@@ -1,3 +1,8 @@
+if vim.g.vscode then
+    require("config.vscode")
+    return
+end
+
 require("config.lazy")
 require("config.plsql")
 require("config.sql_svl_union")

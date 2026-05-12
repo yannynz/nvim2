@@ -28,6 +28,27 @@ Versão usada aqui no ambiente atual:
 - `harpoon` para navegação rápida
 - `nvim-treesitter` para highlight e parsing
 
+## Uso No VS Code
+
+Esta config tambem funciona com a extensao `vscode-neovim`.
+
+Quando o Neovim roda dentro do VS Code, `init.lua` detecta `vim.g.vscode` e carrega apenas:
+
+- opcoes basicas de edicao
+- leader e remaps principais
+- comandos do proprio VS Code para salvar, formatar, renomear, quick fix e navegacao LSP
+
+Nesse modo ele nao carrega `lazy.nvim`, `Mason`, LSPs, DAPs, Treesitter, Copilot ou plugins de linguagem. O suporte de linguagem fica por conta das extensoes do VS Code.
+
+No VS Code, aponte a extensao para o seu executavel do Neovim e, se necessario, para este `init.lua`. Exemplos de settings:
+
+```json
+{
+  "vscode-neovim.neovimExecutablePaths.linux": "/caminho/para/nvim",
+  "vscode-neovim.neovimInitVimPaths.linux": "/home/ynz/.config/nvim/init.lua"
+}
+```
+
 ## Requisitos
 
 ### Obrigatórios
