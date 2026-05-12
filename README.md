@@ -49,6 +49,32 @@ No VS Code, aponte a extensao para o seu executavel do Neovim e, se necessario, 
 }
 ```
 
+## Uso No VS Code Sem Neovim Executavel
+
+Se a maquina Windows nao permite instalar ou rodar `nvim.exe`, use `VSCodeVim` em vez de `vscode-neovim`.
+
+Para portar os comandos locais desta config, existe uma extensao simples em:
+
+```text
+vscode/ynz-sql-tools
+```
+
+Ela roda dentro do proprio VS Code e nao instala tooling de linguagem. Funcionalidades portadas:
+
+- formatador local de SQL/PLSQL
+- `SqlSvlUnion`
+- `SqlApolicesAnalista`
+- definicao local PL/SQL
+- hover local basico de palavras-chave PL/SQL
+
+Copie a pasta para:
+
+```text
+C:\Users\SEU_USUARIO\.vscode\extensions\ynz-sql-tools
+```
+
+Depois reinicie o VS Code e configure os atalhos no `settings.json` conforme `vscode/ynz-sql-tools/README.md`.
+
 ## Requisitos
 
 ### Obrigatórios

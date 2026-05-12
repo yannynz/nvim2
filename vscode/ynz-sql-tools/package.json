@@ -1,0 +1,57 @@
+{
+  "name": "ynz-sql-tools",
+  "displayName": "YNZ SQL Tools",
+  "description": "Ferramentas locais de SQL/PLSQL para VS Code e VSCodeVim.",
+  "version": "0.0.1",
+  "publisher": "ynz",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:ynzSqlTools.formatPlsql",
+    "onCommand:ynzSqlTools.sqlSvlUnion",
+    "onCommand:ynzSqlTools.sqlApolicesAnalista",
+    "onCommand:ynzSqlTools.sqlApolicesAnalistaToday",
+    "onCommand:ynzSqlTools.plsqlDefinition",
+    "onLanguage:sql",
+    "onLanguage:plsql"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ynzSqlTools.formatPlsql",
+        "title": "YNZ SQL: Format PL/SQL"
+      },
+      {
+        "command": "ynzSqlTools.sqlSvlUnion",
+        "title": "YNZ SQL: SVL Union"
+      },
+      {
+        "command": "ynzSqlTools.sqlApolicesAnalista",
+        "title": "YNZ SQL: Apolices Por Analista"
+      },
+      {
+        "command": "ynzSqlTools.sqlApolicesAnalistaToday",
+        "title": "YNZ SQL: Apolices Por Analista Hoje"
+      },
+      {
+        "command": "ynzSqlTools.plsqlDefinition",
+        "title": "YNZ SQL: PL/SQL Definition"
+      }
+    ],
+    "configuration": {
+      "title": "YNZ SQL Tools",
+      "properties": {
+        "ynzSqlTools.ferramentasSqlRoot": {
+          "type": "string",
+          "default": "",
+          "description": "Raiz do projeto ferramentasSql. Se vazio, usa FERRAMENTAS_SQL_ROOT ou ~/Documents/ferramentasSql."
+        }
+      }
+    }
+  }
+}
